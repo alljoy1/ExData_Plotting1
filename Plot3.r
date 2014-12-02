@@ -14,7 +14,7 @@
   ## When you are finished with the assignment, push your git repository to GitHub so that the GitHub version of your repository is up to date. 
   ## There should be four PNG files and four R code files.
   
-   setwd("C:/Data/Coursera/4 ExploritoryDataAnalysis/Week1")  
+ #  setwd("C:/Data/Coursera/4 ExploritoryDataAnalysis/Week1")  
   
   ##  Package to check for required package, install it if missing, and load it    
   packages<-function(x){
@@ -25,7 +25,7 @@
     }
   }
   
-  if (exists("ds1")){
+  if (!exists("ds1")){
     
     ## Get the zip file if it doesn't exist in working directory
     zipurl <- "http://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip"
@@ -59,13 +59,13 @@
     ds1[,1] <- as.Date(as.character(ds1$Date), "%d/%m/%Y")
   }
   ds2 <-subset(ds1,ds1$Date>=as.Date("2007-02-01","%Y-%m-%d") & ds1$Date<=as.Date("2007-02-02","%Y-%m-%d"))
-  rm(tab5rows)
   #rm(ds1) -- clear memory of unneeded data frame  ##decided to leave it in in case plots are run consecutively
   
-  # add converted data/time field and day of week field
+  # add converted data/time field and day of week field and sort index vecotr by date/time so points on plot will appear in date/time order
   dsNames <- names(ds2)
   ds2<-cbind(ds2,strptime(as.character(ds2[,10]), "%d/%m/%Y %H:%M:%S"))
   names(ds2)<-c(dsNames,"DateTimePOSIX")
+  ds2<-ds2[order(ds2$DateTimePOSIX),] 
   #count plot points for Thursday
   ThuCt<-NROW(subset(ds2,weekdays(ds2[,1],abbreviate=TRUE)=="Thu")) #how many rows from Thursday
   #count plot points for Friday
@@ -73,7 +73,7 @@
   
   packages(graphics) 
 
-    # plots submetering against the index vector (each measurement gets a point)
+    # plots submetering against the index vector (each measurement gets a point ordered by date/time)
     plot(x=as.numeric(ds2$Sub_metering_1), type = "l", xaxt="n",xlim = c(0,ThuCt+FriCt), xaxs="i", ylab = "Energy Submetering", xlab="", col = "black")
     axis(side=2, at=seq(0,30, 10), labels=c(0,10,20,30))
     axis(side=1,at=seq(0,ThuCt+FriCt,ThuCt), labels=c("Thu","Fri","Sat"))
@@ -81,9 +81,9 @@
     lines(x=as.numeric(ds2$Sub_metering_3), type = "l",xaxt="n", col = "blue")
     legend("topright", lty = c(1, 1), lwd = c(1, 1, 1), col = c("black", "red", "blue"), legend = c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"))
 
-  
+  # save plots to working directory  
   png(filename="./plot3.png",height=480, width=480,bg="white")
-    # plots power against the index vector (each measurement gets a point)
+    # plots power against the index vector (each measurement gets a point ordered by date/time)
     plot(x=as.numeric(ds2$Sub_metering_1), type = "l", xaxt="n",xlim = c(0,ThuCt+FriCt), xaxs="i", ylab = "Energy Submetering", xlab="", col = "black")
     axis(side=2, at=seq(0,30, 10), labels=c(0,10,20,30))
     axis(side=1,at=seq(0,ThuCt+FriCt,ThuCt), labels=c("Thu","Fri","Sat"))

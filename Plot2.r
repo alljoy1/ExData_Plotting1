@@ -51,21 +51,23 @@
     classes <- sapply(tab5rows, class)
     ds1 <- read.table("household_power_consumption.txt", header = TRUE, sep=";", colClasses = classes, nrows = 2075260, na.strings="?")
     dsNames <- names(ds1)
-  
+    rm(tab5rows)  
+   
     # add new column with both date and time   
     ds1<-cbind(ds1,paste(ds1[,1],ds1[,2], sep = " "))  
     names(ds1)<-c(dsNames,"DateTimeText")   ## adds field name to new column
     ## change first column to date format
     ds1[,1] <- as.Date(as.character(ds1$Date), "%d/%m/%Y")
+
   }
   ds2 <-subset(ds1,ds1$Date>=as.Date("2007-02-01","%Y-%m-%d") & ds1$Date<=as.Date("2007-02-02","%Y-%m-%d"))
-  rm(tab5rows)
   #rm(ds1) -- clear memory of unneeded data frame  ##decided to leave it in in case plots are run consecutively
   
-  # add converted data/time field and day of week field
+  # add converted data/time field and day of week field and sort index vecotr by date/time so points on plot will appear in date/time order
   dsNames <- names(ds2)
   ds2<-cbind(ds2,strptime(as.character(ds2[,10]), "%d/%m/%Y %H:%M:%S"))
   names(ds2)<-c(dsNames,"DateTimePOSIX")
+  ds2<-ds2[order(ds2$DateTimePOSIX),] 
   #count plot points for Thursday
   ThuCt<-NROW(subset(ds2,weekdays(ds2[,1],abbreviate=TRUE)=="Thu")) #how many rows from Thursday
   #count plot points for Friday
@@ -73,14 +75,14 @@
 
   packages(graphics) 
  
-  # plots power against the index vector (each measurement gets a point)
+  # plots power against the index vector (each measurement gets a point ordered by date/time)
   plot(x=as.numeric(ds2$Global_active_power), type = "l",xaxt="n", xlim = c(0,ThuCt+FriCt), xaxs="i", ylab = "Global Active Power (kilowatts)", xlab="")
   # plots tic marks and labels at appropriate point on axis 
   axis(side=1,at=seq(0,ThuCt+FriCt,ThuCt),labels=c("Thu","Fri","Sat"))
   
   # save plots to working directory
   png(filename="./plot2.png",height=480, width=480,bg="white")
-  # plots power against the index vector
+  # plots power against the index vector (each measurement gets a point ordered by date/time)
   plot(x=as.numeric(ds2$Global_active_power), type = "l",xaxt="n", xlim = c(0,ThuCt+FriCt), xaxs="i", ylab = "Global Active Power (kilowatts)", xlab="")
   # plots tic marks and labels at appropriate point on axis 
   axis(side=1,at=seq(0,ThuCt+FriCt,ThuCt),labels=c("Thu","Fri","Sat"))

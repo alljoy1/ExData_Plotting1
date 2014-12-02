@@ -25,7 +25,6 @@
     }
   }
   
-  
   if (!exists("ds1")){
     
     ## Get the zip file if it doesn't exist in working directory
@@ -47,31 +46,34 @@
       # Unzip the archive in working directory
       unzip(destfile, overwrite = TRUE)
     }
-    
+    # read first few lines to get classes of fields 
     tab5rows <- read.table("household_power_consumption.txt", header = TRUE, sep=";", nrows = 5, na.strings="?")
     classes <- sapply(tab5rows, class)
     ds1 <- read.table("household_power_consumption.txt", header = TRUE, sep=";", colClasses = classes, nrows = 2075260, na.strings="?")
     dsNames <- names(ds1)
+    rm(tab5rows)  
     
-    
+    # add new column with both date and time   
     ds1<-cbind(ds1,paste(ds1[,1],ds1[,2], sep = " "))  
     names(ds1)<-c(dsNames,"DateTimeText")   ## adds field name to new column
     ## change first column to date format
     ds1[,1] <- as.Date(as.character(ds1$Date), "%d/%m/%Y")
+    
   }
   ds2 <-subset(ds1,ds1$Date>=as.Date("2007-02-01","%Y-%m-%d") & ds1$Date<=as.Date("2007-02-02","%Y-%m-%d"))
-  ##rm(ds1) -- clear memory of unneeded data frame  ##decided to leave it in in case plots are run consecutively
+  #rm(ds1) -- clear memory of unneeded data frame  ##decided to leave it in in case plots are run consecutively
+  
+  # add converted data/time field and day of week field
   dsNames <- names(ds2)
-  ds2<-cbind(ds2,strptime(as.character(ds2[,10]), "%m/%d/%Y %H:%M:%S"))
-  ds2<-cbind(ds2,weekdays(ds2[1:5,1], abbreviate = TRUE))
-  names(ds2)<-c(dsNames,"DateTimePOSIX","DayOfWk")
+
   
   packages(graphics) 
   
   hist(as.numeric(ds2$Global_active_power), breaks = 12, freq = TRUE, col = "red", main = "Global Active Power", xlab = "Global Active Power (kilowatts)", ylab = "Frequency")
   axis(side=1, at=seq(0,6, 2), labels=seq(0,6,2))
   axis(side=2, at=seq(0,1200, 200), labels=seq(0,1200,200))
-  
+
+  # save plots to working directory
   png(filename="./plot1.png",height=480, width=480,bg="white")
   
   hist(as.numeric(ds2$Global_active_power), breaks = 12, freq = TRUE, col = "red", main = "Global Active Power", xlab = "Global Active Power (kilowatts)", ylab = "Frequency")
